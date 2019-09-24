@@ -93,6 +93,7 @@ var setDataDynamoDB = function (clients, listTxAssetID) {
                                 "phone": customer.phone ? customer.phone : '',
                                 "postCode": customer.postCode ? customer.postCode : 'no value',
                                 "sity": customer.sity ? customer.sity : '',
+                                "referal": customer.referal ? customer.referal : '',
                                 "TxAssetID": listTxAssetID[index]
                             }
                         };
@@ -160,13 +161,24 @@ exports.handler = function (event, context, callback) { return __awaiter(void 0,
                     })
                         .then(function (_a) {
                         var dataBaseArray = _a.dataBaseArray, dataBlockchainArray = _a.dataBlockchainArray;
-                        var dataDifferent = diff(dataBlockchainArray, dataBaseArray);
-                        var dataDiff = new Array;
-                        dataDifferent.map(function (item) {
-                            listTxAssetID.push(item.id);
-                            dataDiff.push(getAddressFromAttachment(item.attachment));
+                        return __awaiter(void 0, void 0, void 0, function () {
+                            var dataDifferent, dataDiff;
+                            return __generator(this, function (_b) {
+                                switch (_b.label) {
+                                    case 0: return [4 /*yield*/, diff(dataBlockchainArray, dataBaseArray)];
+                                    case 1:
+                                        dataDifferent = _b.sent();
+                                        dataDiff = new Array;
+                                        return [4 /*yield*/, dataDifferent.map(function (item) {
+                                                listTxAssetID.push(item.id);
+                                                dataDiff.push(getAddressFromAttachment(item.attachment));
+                                            })];
+                                    case 2:
+                                        _b.sent();
+                                        return [2 /*return*/, dataDiff];
+                                }
+                            });
                         });
-                        return dataDiff;
                     })
                         .then(function (dataDiff) {
                         return getCustomerInfo(dataDiff);

@@ -44,15 +44,16 @@ const setDataDynamoDB = (clients, listTxAssetID) => {
             let params = {
                 TableName: 'client',  
                 Item: {
-                    "address":      customer.address    ? customer.address: 'no value',
+                    "address":      customer.address     ? customer.address: 'no value',
                     "countMiners":  customer.countMiners ? customer.countMiners: '',
-                    "country":      customer.country    ? customer.country: '',
-                    "countryState": customer.state      ? customer.state: '',
-                    "customName":   customer.name       ? customer.name:'',
-                    "email":        customer.email      ? customer.email: '',
-                    "phone":        customer.phone      ? customer.phone: '',
-                    "postCode":     customer.postCode   ? customer.postCode: 'no value',
-                    "sity":         customer.sity       ? customer.sity: '',
+                    "country":      customer.country     ? customer.country: '',
+                    "countryState": customer.state       ? customer.state: '',
+                    "customName":   customer.name        ? customer.name:'',
+                    "email":        customer.email       ? customer.email: '',
+                    "phone":        customer.phone       ? customer.phone: '',
+                    "postCode":     customer.postCode    ? customer.postCode: 'no value',
+                    "sity":         customer.sity        ? customer.sity: '',
+                    "referal":      customer.referal     ? customer.referal: '',
                     "TxAssetID":    listTxAssetID[index]
                 }
             }
@@ -103,28 +104,28 @@ const getCustomerInfo = (addresses: Array<any>): Promise<object> => {
 };
 
 exports.handler = async (event, context, callback) => {
-        //Generate array from Blockchain
-        const dataBlockchainArray = await getListAssetTransfer(ADDRESS);
-        let listTxAssetID= new Array;
-        
-        await getDataDynamoDB.then(result => {//return two arrays: 1) from DataBase and 2) from Blockchain        
-            const dataBaseArray: any = result;
-            return {dataBaseArray, dataBlockchainArray};        
+    //Generate array from Blockchain
+    const dataBlockchainArray = await getListAssetTransfer(ADDRESS);
+    let listTxAssetID= new Array;
+    
+    await getDataDynamoDB.then(result => {//return two arrays: 1) from DataBase and 2) from Blockchain        
+        const dataBaseArray: any = result;
+        return {dataBaseArray, dataBlockchainArray};        
+    })
+    .then(async ({dataBaseArray, dataBlockchainArray}) => { 
+        const dataDifferent = await diff(dataBlockchainArray, dataBaseArray);
+        let dataDiff = new Array;
+        await dataDifferent.map(item => {
+            listTxAssetID.push(item.id);
+            dataDiff.push(getAddressFromAttachment(item.attachment));
         })
-        .then(({dataBaseArray, dataBlockchainArray}) => { 
-            const dataDifferent = diff(dataBlockchainArray, dataBaseArray);
-            let dataDiff = new Array;
-            dataDifferent.map(item => {
-                listTxAssetID.push(item.id);    
-                dataDiff.push(getAddressFromAttachment(item.attachment));
-            })
-            return dataDiff;        
-        })
-        .then(dataDiff => {
-            return getCustomerInfo(dataDiff);
-        })
-        .then((customerInfo: any) => {
-            return setDataDynamoDB(customerInfo, listTxAssetID);
-        })
-        .then(result => console.log(result));
+        return dataDiff;        
+    })
+    .then(dataDiff => {
+        return getCustomerInfo(dataDiff);
+    })
+    .then((customerInfo: any) => {
+        return setDataDynamoDB(customerInfo, listTxAssetID);
+    })
+    .then(result => console.log(result));
 }
