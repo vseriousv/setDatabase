@@ -6,6 +6,8 @@ branches:
   - master
 install:
   - npm install
+script:
+  - npm run build
 deploy:
   - provider: lambda
     function_name: "setDatabaseClients"
